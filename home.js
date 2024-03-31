@@ -9,12 +9,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useRoute } from '@react-navigation/native';
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
+  const [isNormalUser , setISNormalUser] = useState(true)
   const navigation = useNavigation();
   const route = useRoute();
   useEffect(async() => {
    
    const getDataFromLogin = route.params?.isNormalUser;
    console.log('getDataFromLogin',getDataFromLogin);
+   setISNormalUser(getDataFromLogin)
   
   if (getDataFromLogin !== true) {
     const dataString = await AsyncStorage.getItem('credentials');
@@ -100,13 +102,22 @@ const HomeScreen = () => {
 
       </View>
       <Text style={styles.title}>USERS</Text>
+      {isNormalUser !== true ?
       <FlatList
         data={users}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader} // Add header component
       />
-      <View style={{height:50,width:'100%',alignSelf:'baseline',flexDirection:'row',justifyContent:'space-between',paddingHorizontal:20,paddingVertical:5}}>
+      :
+      <View style={{flex:.99,alignItems:'center',justifyContent:'center',}}>
+        <Text style={{fontSize:15,color:'#000',fontWeight:'800'}}>
+          Only admin can see the registered users.
+        </Text>
+      </View>
+         }
+
+   <View style={{height:50,width:'100%',alignSelf:'baseline',flexDirection:'row',justifyContent:'space-between',paddingHorizontal:20,paddingVertical:5}}>
       <TouchableOpacity 
       onPress={()=>{
         navigation.navigate('Home')
@@ -124,7 +135,8 @@ const HomeScreen = () => {
       <Ionicons name="person-outline" size={30} color={'grey'} />
       </TouchableOpacity>
       </View>
-    </View>
+   </View>
+   
   );
 };
 

@@ -50,6 +50,11 @@ const SignUpScreen = () => {
     Toast.show('Please enter your full name.', Toast.SHORT);
     return;
   }
+  if (!email) {
+           
+    Toast.show('Please enter your email address.', Toast.SHORT);
+    return;
+}
   // Validate email format
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!EMAIL_REGEX.test(email)) {
