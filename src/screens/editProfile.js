@@ -7,7 +7,7 @@ import DatePicker from 'react-native-date-picker';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Header from '../components/Header';
-
+import Toast from 'react-native-simple-toast';
 const EditProfile = () => {
   const [fullName, setFullName] = useState('admin');
   const [email, setEmail] = useState('admin@google.com');
@@ -61,15 +61,57 @@ const EditProfile = () => {
   };
 
   const handleSave = () => {
-    const updatedData = {
-      fullName,
-      email,
-      mobileNumber,
-      dateOfBirth: dateOfBirth, // Convert to ISO string format
-      gender: selectedGender, // Handle gender update (if applicable)
-      password, // Consider security implications of storing plain text passwords
-    };
-    updateUserData(updatedData);
+    if (!fullName) {
+      Toast.show('Please enter your full name.', Toast.SHORT);
+      return;
+    }
+  
+    // Validate email format
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_REGEX.test(email)) {
+      Toast.show('Please enter a valid email address.', Toast.SHORT);
+      return;
+    }
+  
+    // Validate mobile number format 
+    const MOBILE_REGEX = /^\d{10}$/; // Example for 10-digit phone numbers
+    if (!MOBILE_REGEX.test(mobileNumber)) {
+      Toast.show('Please enter a valid mobile number.', Toast.SHORT);
+      return;
+    }
+  
+    if (!selectedGender) {
+      Toast.show('Please select your gender', Toast.SHORT);
+      return;
+    }
+    // Validate date format 
+    if (!dateOfBirth) {
+      Toast.show('Please select your date of birth', Toast.SHORT);
+      return;
+    }
+    // You can use a date library like moment.js for more robust validation
+  
+    // Validate password length
+    if (password.length < 4) {
+      Toast.show('Password must be at least 4 characters long.', Toast.SHORT);
+      return;
+    }
+    if (password !== confirmPassword) {
+      Toast.show('Passwords do not match.', Toast.SHORT);
+      return;
+    }
+   
+    else {
+      const updatedData = {
+        fullName,
+        email,
+        mobileNumber,
+        dateOfBirth: dateOfBirth, // Convert to ISO string format
+        gender: selectedGender, // Handle gender update (if applicable)
+        password, // Consider security implications of storing plain text passwords
+      };
+      updateUserData(updatedData);
+    }
     
   };
 

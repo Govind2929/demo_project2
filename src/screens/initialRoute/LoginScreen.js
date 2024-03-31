@@ -1,79 +1,10 @@
-// import React from 'react';
-// import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
-// import { useNavigation } from '@react-navigation/native'
-// const LoginScreen = () => {
-//     const navigation = useNavigation();
-//   return (
-//     <View style={styles.container}>
-//       {/* Logo (optional) */}
-//       <Text style={styles.logo}>Your App Logo</Text>
-
-//       <Text style={styles.title}>Sign In</Text>
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="username"
-//         autoCapitalize="none"
-//         keyboardType="email-address"
-//       />
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Password"
-//         secureTextEntry={true}
-//       />
-
-//       <TouchableOpacity onPress={() => {
-//           navigation.navigate('Home')
-//       }} >
-//         <Text>
-//         Sign In
-//         </Text>
-//       </TouchableOpacity>
-
-//       <Text style={styles.link}>Don't have an account? Sign Up</Text>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     padding: 20,
-//   },
-//   logo: {
-//     fontSize: 30,
-//     marginBottom: 20,
-//   },
-//   title: {
-//     fontSize: 24,
-//     marginBottom: 20,
-//   },
-//   input: {
-//     height: 40,
-//     width: '100%',
-//     borderColor: 'gray',
-//     borderWidth: 1,
-//     marginBottom: 10,
-//     padding: 8,
-//   },
-//   link: {
-//     marginTop: 10,
-//   },
-// });
-
-// export default LoginScreen;
-
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const { width, height } = Dimensions.get('window');
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import Toast from 'react-native-simple-toast';
 const LoginScreen = () => {
     const navigation = useNavigation();
 
@@ -94,7 +25,6 @@ const LoginScreen = () => {
     }, []);
 
     const handleRememberMe = () => {
-        // setIsCheckbox(!isCheckbox);
         if (isCheckbox === false) {
             setEmail('admin@gmail.com')
             setPassword('12346')
@@ -125,29 +55,41 @@ const LoginScreen = () => {
 
     const handleLogin = async (loginCredentials) => {
         console.log('handleLogin', email, password);
-        if (!email || !password) {
-            alert('Please enter Email and password.');
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+           
+            Toast.show('Please enter your Email.', Toast.SHORT);
             return;
         }
-
-
-        // Await for credential retrieval
-        // Ensure credentials are fetched first
-       
-      //  const validCredentials = credentials[email];
-        // console.log('validCredentials1', validCredentials, credentials);
-        // console.log('validCredentials2', validCredentials?.password); // Optional chaining for safe access
-
-        if (isCheckbox === true) {
+        else if (!EMAIL_REGEX.test(email)) {
+            Toast.show('Please enter a valid email address.', Toast.SHORT);
+            return;
+          }
+       else if ( !password) {
+           
+            Toast.show('Please enter your password.', Toast.SHORT);
+            return;
+        }
+        else if (password.length < 4) {
+            Toast.show('Password must be at least 4 characters long.', Toast.SHORT);
+            return;
+          }
+          else  if (isCheckbox === true) {
             console.log('Login successful!s');
-            navigation.navigate('Home');
+            navigation.navigate('Home', { isNormalUser: false });
+        }
+        else  if (loginCredentials === null) {
+            console.log('Login successful!s');
+            Toast.show('User not found, Please Sign up.', Toast.SHORT);
+            // navigation.navigate('Home');
         }
         else {
-            console.log('else called');
+            console.log('else calleds' ,loginCredentials);
             const loginCredential = loginCredentials[email]
             if (!loginCredential || loginCredential?.password !== password) { // Optional chaining
                 console.log('validCredentials', loginCredential, loginCredential?.password);
-                alert('Invalid Email or password.');
+                
+                Toast.show('Invalid Email or password.', Toast.SHORT);
                 return;
 
             }
@@ -157,7 +99,7 @@ const LoginScreen = () => {
             const jsonData = JSON.stringify(user); // Convert user object to JSON string
             await AsyncStorage.setItem('loggedInUser', jsonData); 
             console.log('Login successful!');
-            navigation.navigate('Home');
+            navigation.navigate('Home', { isNormalUser: true });
         }
     };
 
@@ -186,25 +128,23 @@ const LoginScreen = () => {
                 autoCapitalize="none"
                 placeholderTextColor={'#000'}
                 keyboardType="email-address"
-                onChangeText={setEmail}
+                onChangeText={(text)=>{
+                    setIsCheckbox(false)
+                    setEmail(text)
+                }}
                 value={email}
             />
 
-            {/* <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor={'#000'}
-                secureTextEntry={true}
-                onChangeText={setPassword}
-                value={password}
-            /> */}
             <View style={styles.passwordInputContainer}>
                 <TextInput
                     style={styles.passwordInput}
                     placeholder="Password"
                     placeholderTextColor={'#000'}
                     secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
-                    onChangeText={setPassword}
+                    onChangeText={(text)=>{
+                        setIsCheckbox(false)
+                        setPassword(text)
+                    }}
                     value={password}
                 />
                 <TouchableOpacity style={styles.eyeIconContainer} onPress={toggleShowPassword}>
@@ -244,9 +184,7 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // justifyContent: 'center',
-        //alignItems: 'center',
-        // padding: 20,
+       
         backgroundColor: '#fff'
     },
     logo: {
@@ -266,11 +204,10 @@ const styles = StyleSheet.create({
         borderColor: 'gray',
         borderBottomWidth: 1,
         marginBottom: 10,
-        //  padding: 8,
         marginHorizontal: 20
     },
     button: {
-        backgroundColor: '#000', // Add button styling (optional)
+        backgroundColor: '#000',
         padding: 10,
         borderRadius: 15,
         width: 190,
@@ -300,16 +237,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         marginRight: 10,
-        // backgroundColor:'red',
         alignItems: 'center',
         justifyContent: 'center'
     },
     checkedCheckbox: {
         width: 15,
         height: 15,
-        backgroundColor: '#4CAF50', // Adjust color as desired
+        backgroundColor: '#4CAF50',
         borderRadius: 15,
-        // marginLeft: 5,
     },
     checkboxText: {
         fontSize: 16,
@@ -317,18 +252,18 @@ const styles = StyleSheet.create({
     passwordInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        width: '85%', // Adjust as needed
+        width: '85%',
         borderBottomWidth: 1,
         borderColor: 'gray',
         marginBottom: 10,
         marginHorizontal: 20,
     },
     passwordInput: {
-        flex: 1, // Allow text input to fill available space
+        flex: 1,
         height: 40,
     },
     eyeIconContainer: {
-        paddingHorizontal: 10, // Adjust padding for icon
+        paddingHorizontal: 10, 
     },
     eyeIcon: {
         width: 20,

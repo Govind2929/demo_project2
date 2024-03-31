@@ -6,32 +6,35 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import { useRoute } from '@react-navigation/native';
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
   const navigation = useNavigation();
+  const route = useRoute();
   useEffect(async() => {
-    // setUsers(USERS_DATA);
-    const date = '2024-03-28T07:57:38.995Z' ;
-  //  formatDates(date)
+   
+   const getDataFromLogin = route.params?.isNormalUser;
+   console.log('getDataFromLogin',getDataFromLogin);
+  
+  if (getDataFromLogin !== true) {
     const dataString = await AsyncStorage.getItem('credentials');
     console.log('dataStringQ@Q', JSON.parse(dataString)); 
      const userData = JSON.parse(dataString);
-    // const userList = Object.values(userData); 
-    // setUsers(userList);
+ 
      
     const userListWithIndex = Object.entries(userData).map(
       ([email, userObject], index) => ({
         ...userObject, // Spread user information
         email, // Include email for key extraction
         serialNumber: index + 1, // Add serial number starting from 1
-        // formattedDateOfBirth: format(
-        //   new Date(userObject.dateOfBirth),
-        //   'dd-MM-yyyy' // Format date only (no time)
-        // ),
+        
       })
     );
     setUsers(userListWithIndex);
+  }
+  else {
+    setUsers([])
+  }
 
   }, []);
   const extractDate = (dateOfBirthString) => {

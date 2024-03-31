@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
-
+import Toast from 'react-native-simple-toast';
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
@@ -44,16 +44,54 @@ const SignUpScreen = () => {
       return format(date, 'dd-MM-yyyy');
       };
     const handleSignUp = async () => {
-        if (!fullName || !email || !mobileNumber || !password || !confirmPassword) {
-            alert('Please fill in all required fields.');
-            return;
-        }
 
-        if (password !== confirmPassword) {
-            alert('Passwords do not match.');
-            return;
-        }
+  // Validate full name (optional, adjust as needed)
+  if (!fullName) {
+    Toast.show('Please enter your full name.', Toast.SHORT);
+    return;
+  }
+  // Validate email format
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_REGEX.test(email)) {
+    Toast.show('Please enter a valid email address.', Toast.SHORT);
+    return;
+  }
 
+  // Validate mobile number format (adjust based on your region)
+  const MOBILE_REGEX = /^\d{10}$/; // Example for 10-digit phone numbers
+  if (!MOBILE_REGEX.test(mobileNumber)) {
+    Toast.show('Please enter a valid mobile number.', Toast.SHORT);
+    return;
+  }
+  
+  if (!selectedGender) {
+    Toast.show('Please select your gender', Toast.SHORT);
+    return;
+  }
+  if (!dateOfBirth) {
+    Toast.show('Please select your date of birth', Toast.SHORT);
+    return;
+  }
+  // Validate password length
+  if (password.length < 4) {
+    Toast.show('Password must be at least 4 characters long.', Toast.SHORT);
+    return;
+  }
+
+  // Validate password confirmation
+  if (password !== confirmPassword) {
+    Toast.show('Passwords do not match.', Toast.SHORT);
+    return;
+  }
+        const storedCredentials = await AsyncStorage.getItem('credentials');
+        if (storedCredentials) {
+          const parsedCredentials = JSON.parse(storedCredentials);
+          const existingEmails = Object.values(parsedCredentials).map(user => user.email);
+          if (existingEmails.includes(email)) {
+            Toast.show('Email already exists. Please try with a different email or login.', Toast.SHORT);
+            return;
+          }
+        }
         const newCredentials = {
             [email]: { // Use email as unique username
                 fullName,
@@ -232,14 +270,7 @@ const SignUpScreen = () => {
                         <Icon name={confirmPasswordVisibility ? 'eye-off' : 'eye'} size={20} color="grey" />
                     </TouchableOpacity>
                 </View>
-                {/* <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                secureTextEntry={true}
-                placeholderTextColor={'#000'}
-                onChangeText={setConfirmPassword}
-                value={confirmPassword}
-            /> */}
+               
 
                 <TouchableOpacity
                     style={styles.button}
